@@ -115,7 +115,7 @@
     <Compile Include="Thing.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="README" />
+    <None Include="..\README" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '11.0' ">
     <VisualStudioVersion>11.0</VisualStudioVersion>
