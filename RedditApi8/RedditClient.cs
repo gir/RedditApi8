@@ -6,13 +6,9 @@
 
 namespace RedditApi8
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Runtime.Serialization.Json;
     using System.Text;
     using System.Threading.Tasks;
     using Windows.Data.Json;
@@ -52,6 +48,7 @@ namespace RedditApi8
             this.client = new HttpClient();
             this.client.DefaultRequestHeaders.Add("User-Agent", this.UserAgent);
             this.errors = new List<string>();
+            this.IsLoggedIn = false;
         }
 
         /// <summary>
@@ -75,6 +72,14 @@ namespace RedditApi8
         /// The user agent.
         /// </value>
         public string UserAgent { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the user is logged in.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the user is logged in; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsLoggedIn { get; set; }
 
         /// <summary>
         /// User login.
@@ -119,6 +124,7 @@ namespace RedditApi8
                 // No errors so the login should be fine; set the cookie.
                 this.cookie = new Cookie("reddit_session", json["json"].GetObject()["data"].GetObject()["cookie"].GetString(), "/", "reddit.com");
                 this.client.DefaultRequestHeaders.Add("Cookie", this.cookie.ToString());
+                this.IsLoggedIn = true;
                 return true;
             }
             else
@@ -133,7 +139,14 @@ namespace RedditApi8
         /// <returns>Returns AccountData.</returns>
         public async Task<AccountData> GetMeAsync()
         {
-            return (await this.ApiGetAsync(ApiPaths.Me)).Data as AccountData;
+            if (this.IsLoggedIn)
+            {
+                return (await this.ApiGetAsync(ApiPaths.Me)).Data as AccountData;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
@@ -143,9 +156,9 @@ namespace RedditApi8
         /// <returns>
         /// Returns list of LinkData.
         /// </returns>
-        public async Task<List<LinkData>> GetFrontPage(Dictionary<string, string> additionalParams = null)
+        public async Task<List<LinkData>> GetFrontPageAsync(Dictionary<string, string> additionalParams = null)
         {
-            return await this.GetPage(null, additionalParams);
+            return await this.GetPageAsync(null, additionalParams);
         }
 
         /// <summary>
@@ -156,7 +169,7 @@ namespace RedditApi8
         /// <returns>
         /// Returns list of LinkData.
         /// </returns>
-        public async Task<List<LinkData>> GetPage(string subreddit = null, Dictionary<string, string> additionalParams = null)
+        public async Task<List<LinkData>> GetPageAsync(string subreddit = null, Dictionary<string, string> additionalParams = null)
         {
             // If a subreddit was specified, get that instead of the front page.
             StringBuilder uri = new StringBuilder(ApiPaths.FrontPage);

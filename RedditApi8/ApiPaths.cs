@@ -6,12 +6,6 @@
 
 namespace RedditApi8
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-
     /// <summary>
     /// ApiPaths class.
     /// </summary>
@@ -37,6 +31,17 @@ namespace RedditApi8
         /// </summary>
         public const string FrontPage = Domain + ".json";
 
+#if TEST
+        /// <summary>
+        /// Reddit domain.
+        /// </summary>
+        private const string Domain = "http://localhost/";
+
+        /// <summary>
+        /// Secure Reddit domain.
+        /// </summary>
+        private const string SecureDomain = "http://localhost/";
+#else
         /// <summary>
         /// Reddit domain.
         /// </summary>
@@ -46,5 +51,6 @@ namespace RedditApi8
         /// Secure Reddit domain.
         /// </summary>
         private const string SecureDomain = "https://ssl.reddit.com/";
+#endif
     }
 }

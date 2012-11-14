@@ -6,16 +6,8 @@
 
 namespace RedditApi8
 {
-    using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Dynamic;
-    using System.Linq;
     using System.Runtime.Serialization;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Windows.Data.Json;
 
     /// <summary>
     /// ListingKind class.
