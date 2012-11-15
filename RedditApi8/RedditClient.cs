@@ -82,6 +82,14 @@ namespace RedditApi8
         public bool IsLoggedIn { get; set; }
 
         /// <summary>
+        /// Gets or sets the modhash.
+        /// </summary>
+        /// <value>
+        /// The modhash.
+        /// </value>
+        public string Modhash { get; set; }
+
+        /// <summary>
         /// User login.
         /// </summary>
         /// <param name="user">The user.</param>
@@ -131,6 +139,31 @@ namespace RedditApi8
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// User logout.
+        /// </summary>
+        /// <returns>Returns true if the logout was successful; false otherwise.</returns>
+        public async Task<bool> LogoutAsync()
+        {
+            if (this.IsLoggedIn)
+            {
+                string logoutUri = string.Format(ApiPaths.Logout);
+                HttpContent content = new FormUrlEncodedContent(
+                    new[]
+                    {
+                        new KeyValuePair<string, string>("api_type", "json"),
+                        new KeyValuePair<string, string>("uh", this.Modhash)
+                    });
+
+                this.response = await this.client.PostAsync(logoutUri, content);
+                this.cookie = null;
+                this.client.DefaultRequestHeaders.Remove("Cookie");
+                this.IsLoggedIn = false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -191,14 +224,30 @@ namespace RedditApi8
             }
 
             // Get the links.
-            Thing thing = await this.ApiGetAsync(uri.ToString());
-            List<LinkData> links = new List<LinkData>();
-            foreach (Thing child in ((ListingData)thing.Data).Children)
-            {
-                links.Add(child.Data as LinkData);
-            }
+            return (await this.ApiGetAsync(uri.ToString())).GetDataList<LinkData>();
+        }
 
-            return links;
+        /// <summary>
+        /// Gets the comments async.
+        /// </summary>
+        /// <param name="id">The link id to get comments from.</param>
+        /// <returns>Returns list of comments.</returns>
+        public async Task<List<CommentData>> GetCommentsAsync(string id)
+        {
+            string uri = string.Format(ApiPaths.Comments, id);
+            return (await this.ApiGetAsync(uri.ToString())).GetDataList<CommentData>();
+        }
+
+        /// <summary>
+        /// Gets more comments async.
+        /// </summary>
+        /// <param name="id">The link id to get comments from.</param>
+        /// <param name="commentId">The comment id.</param>
+        /// <returns>Returns list of comments.</returns>
+        public async Task<List<CommentData>> GetMoreCommentsAsync(string id, string commentId)
+        {
+            string uri = string.Format(ApiPaths.MoreComments, id, commentId);
+            return (await this.ApiGetAsync(uri.ToString())).GetDataList<CommentData>();
         }
 
         /// <summary>

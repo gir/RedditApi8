@@ -7,6 +7,7 @@
 namespace RedditApi8
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Runtime.Serialization;
     using System.Runtime.Serialization.Json;
@@ -51,6 +52,11 @@ namespace RedditApi8
             /// Subreddit kind.
             /// </summary>
             t5,
+
+            /// <summary>
+            /// More kind.
+            /// </summary>
+            more,
         }
 
         /// <summary>
@@ -106,6 +112,9 @@ namespace RedditApi8
                     case ThingKind.t5:
                         this.Kind = ThingKind.t5;
                         break;
+                    case ThingKind.more:
+                        this.Kind = ThingKind.more;
+                        break;
                 }
             }
         }
@@ -126,8 +135,48 @@ namespace RedditApi8
         /// <returns>Returns a deserialized Thing.</returns>
         public static Thing Deserialize(Stream stream)
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Thing));
-            return (Thing)serializer.ReadObject(stream);
+            // Some times (like in the case of comments) the json comes back as
+            // an array of Things. The first thing is the parent Thing, then the
+            // rest is what you actually wanted. Check to see if an object or an
+            // array comes back. If an array comes back, return the second Thing
+            // because that is what we are after.
+            try
+            {
+                string s = (new StreamReader(stream)).ReadToEnd();
+                stream.Position = 0;
+                if (s[0] == '[')
+                {
+                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<Thing>));
+                    return ((List<Thing>)serializer.ReadObject(stream))[1];
+                }
+                else
+                {
+                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Thing));
+                    return (Thing)serializer.ReadObject(stream);
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the data list.
+        /// </summary>
+        /// <typeparam name="T">Type of data.</typeparam>
+        /// <returns>
+        /// Returns a list of data.
+        /// </returns>
+        public List<T> GetDataList<T>()
+        {
+            List<T> list = new List<T>();
+            foreach (Thing child in ((ListingData)this.Data).Children)
+            {
+                list.Add((T)child.Data);
+            }
+
+            return list;
         }
 
         /// <summary>
@@ -156,6 +205,9 @@ namespace RedditApi8
                     break;
                 case ThingKind.t5:
                     this.Data = this.InternalData.ToData<SubredditData>();
+                    break;
+                case ThingKind.more:
+                    this.Data = this.InternalData.ToData<MoreData>();
                     break;
             }
         }

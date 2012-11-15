@@ -1066,6 +1066,46 @@ namespace RedditApi8
         */
         #endregion
 
+        #region More Data
+        /// <summary>
+        /// Gets or sets the count.
+        /// </summary>
+        /// <value>
+        /// The count.
+        /// </value>
+        [DataMember(Name = "count")]
+        public long Count { get; set; }
+
+        /*
+        /// <summary>
+        /// Gets or sets the children.
+        /// </summary>
+        /// <value>
+        /// The children.
+        /// </value>
+        [DataMember(Name = "children")]
+        public List<string> Children { get; set; }
+
+        /// <summary>
+        /// Gets or sets the id.
+        /// </summary>
+        /// <value>
+        /// The id.
+        /// </value>
+        [DataMember(Name = "id")]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        [DataMember(Name = "name")]
+        public string Name { get; set; }
+        */
+        #endregion
+
         #region Private Properties
         /// <summary>
         /// Gets or sets the created.

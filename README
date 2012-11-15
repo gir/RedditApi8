@@ -8,3 +8,6 @@ bool loggedIn = await client.LoginAsync("user", "passwd");
 AccountData a = await client.GetMeAsync();
 List<LinkData> frontPageLinks = await client.GetFrontPage();
 List<LinkData> subredditLinks = await client.GetPage("pics");
+List<CommentData> comments = await this.client.GetCommentsAsync("asdf");
+List<CommentData> moreComments = await this.client.GetMoreCommentsAsync("asdf", "qwer");
+loggedIn = !(await client.LogoutAsync());
