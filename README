@@ -8,6 +8,9 @@ bool loggedIn = await client.LoginAsync("user", "passwd");
 AccountData a = await client.GetMeAsync();
 List<LinkData> frontPageLinks = await client.GetFrontPage();
 List<LinkData> subredditLinks = await client.GetPage("pics");
-List<CommentData> comments = await this.client.GetCommentsAsync("asdf");
-List<CommentData> moreComments = await this.client.GetMoreCommentsAsync("asdf", "qwer");
+List<CommentData> comments = (await this.client.GetCommentsAsync("asdf")).Item2;
+List<CommentData> moreComments = (await this.client.GetMoreCommentsAsync("asdf", "qwer")).Item2;
 loggedIn = !(await client.LogoutAsync());
+
+Developing the API:
+Usually you'll want to be in the "Test" configuration so that you can run tests.
