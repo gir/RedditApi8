@@ -132,14 +132,12 @@ namespace RedditApi8
         /// Deserializes the specified stream.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        /// <returns>Returns a deserialized Thing.</returns>
-        public static Thing Deserialize(Stream stream)
+        /// <returns>Returns a list of deserialized Things.</returns>
+        public static List<Thing> DeserializeList(Stream stream)
         {
             // Some times (like in the case of comments) the json comes back as
             // an array of Things. The first thing is the parent Thing, then the
-            // rest is what you actually wanted. Check to see if an object or an
-            // array comes back. If an array comes back, return the second Thing
-            // because that is what we are after.
+            // rest is what you actually wanted.
             try
             {
                 string s = (new StreamReader(stream)).ReadToEnd();
@@ -147,12 +145,14 @@ namespace RedditApi8
                 if (s[0] == '[')
                 {
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<Thing>));
-                    return ((List<Thing>)serializer.ReadObject(stream))[1];
+                    return (List<Thing>)serializer.ReadObject(stream);
                 }
                 else
                 {
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Thing));
-                    return (Thing)serializer.ReadObject(stream);
+                    List<Thing> result = new List<Thing>();
+                    result.Add((Thing)serializer.ReadObject(stream));
+                    return result;
                 }
             }
             catch

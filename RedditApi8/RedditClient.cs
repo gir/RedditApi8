@@ -6,6 +6,7 @@
 
 namespace RedditApi8
 {
+    using System;
     using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
@@ -174,7 +175,7 @@ namespace RedditApi8
         {
             if (this.IsLoggedIn)
             {
-                return (await this.ApiGetAsync(ApiPaths.Me)).Data as AccountData;
+                return (await this.ApiGetAsync(ApiPaths.Me))[0].Data as AccountData;
             }
             else
             {
@@ -224,7 +225,7 @@ namespace RedditApi8
             }
 
             // Get the links.
-            return (await this.ApiGetAsync(uri.ToString())).GetDataList<LinkData>();
+            return (await this.ApiGetAsync(uri.ToString()))[0].GetDataList<LinkData>();
         }
 
         /// <summary>
@@ -232,10 +233,11 @@ namespace RedditApi8
         /// </summary>
         /// <param name="id">The link id to get comments from.</param>
         /// <returns>Returns list of comments.</returns>
-        public async Task<List<CommentData>> GetCommentsAsync(string id)
+        public async Task<Tuple<LinkData, List<CommentData>>> GetCommentsAsync(string id)
         {
             string uri = string.Format(ApiPaths.Comments, id);
-            return (await this.ApiGetAsync(uri.ToString())).GetDataList<CommentData>();
+            List<Thing> result = await this.ApiGetAsync(uri.ToString());
+            return Tuple.Create(((ListingData)result[0].Data).Children[0].Data as LinkData, result[1].GetDataList<CommentData>());
         }
 
         /// <summary>
@@ -244,10 +246,11 @@ namespace RedditApi8
         /// <param name="id">The link id to get comments from.</param>
         /// <param name="commentId">The comment id.</param>
         /// <returns>Returns list of comments.</returns>
-        public async Task<List<CommentData>> GetMoreCommentsAsync(string id, string commentId)
+        public async Task<Tuple<LinkData, List<CommentData>>> GetMoreCommentsAsync(string id, string commentId)
         {
             string uri = string.Format(ApiPaths.MoreComments, id, commentId);
-            return (await this.ApiGetAsync(uri.ToString())).GetDataList<CommentData>();
+            List<Thing> result = await this.ApiGetAsync(uri.ToString());
+            return Tuple.Create(((ListingData)result[0].Data).Children[0].Data as LinkData, result[1].GetDataList<CommentData>());
         }
 
         /// <summary>
@@ -255,13 +258,13 @@ namespace RedditApi8
         /// </summary>
         /// <param name="uri">The URI.</param>
         /// <returns>Thing object if GET was successful; otherwise, null.</returns>
-        private async Task<Thing> ApiGetAsync(string uri)
+        private async Task<List<Thing>> ApiGetAsync(string uri)
         {
             this.response = await this.client.GetAsync(uri);
             if (this.response.IsSuccessStatusCode)
             {
                 // Deserialize the response.
-                return Thing.Deserialize(await this.response.Content.ReadAsStreamAsync());
+                return Thing.DeserializeList(await this.response.Content.ReadAsStreamAsync());
             }
             else
             {
