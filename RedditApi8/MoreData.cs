@@ -22,7 +22,7 @@ namespace RedditApi8
         /// The count.
         /// </value>
         [DataMember(Name = "count")]
-        public long Count { get; set; }
+        public long? Count { get; set; }
 
         /*
           I don't think this is needed and it just messes everything up anyway.

@@ -11,6 +11,7 @@ namespace RedditApi8
     using System.IO;
     using System.Runtime.Serialization;
     using System.Runtime.Serialization.Json;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Thing class.
@@ -144,8 +145,13 @@ namespace RedditApi8
                 stream.Position = 0;
                 if (s[0] == '[')
                 {
+                    // Comments with no replies comes back as a string, get rid of it.
+                    s = s.Replace("\"replies\": \"\",", string.Empty);
+
+                    // Sometimes children is just a list of ids, get rid of it.
+                    s = Regex.Replace(s, @"""children"": \["".+?""\],", string.Empty);
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<Thing>));
-                    return (List<Thing>)serializer.ReadObject(stream);
+                    return (List<Thing>)serializer.ReadObject(s.ToStream());
                 }
                 else
                 {
@@ -155,7 +161,7 @@ namespace RedditApi8
                     return result;
                 }
             }
-            catch
+            catch (Exception e)
             {
                 return null;
             }
@@ -168,12 +174,15 @@ namespace RedditApi8
         /// <returns>
         /// Returns a list of data.
         /// </returns>
-        public List<T> GetDataList<T>()
+        public List<T> GetDataList<T>() where T : class, IData
         {
             List<T> list = new List<T>();
             foreach (Thing child in ((ListingData)this.Data).Children)
             {
-                list.Add((T)child.Data);
+                if (child.Data is T)
+                {
+                    list.Add((T)child.Data);
+                }
             }
 
             return list;
@@ -186,6 +195,11 @@ namespace RedditApi8
         [OnDeserialized]
         internal void OnDeserialized(StreamingContext context)
         {
+            if (this.Kind == null)
+            {
+                return;
+            }
+
             switch (this.Kind)
             {
                 case ThingKind.Listing:

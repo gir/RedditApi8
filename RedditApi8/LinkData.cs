@@ -394,7 +394,7 @@ namespace RedditApi8
 
             set
             {
-                if (value.GetType() == typeof(bool))
+                if (value is bool)
                 {
                     this.Edited = null;
                 }

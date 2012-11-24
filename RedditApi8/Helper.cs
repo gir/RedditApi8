@@ -36,8 +36,13 @@ namespace RedditApi8
         /// <typeparam name="T">The generic type to convert to.</typeparam>
         /// <param name="data">The data.</param>
         /// <returns>Returns T.</returns>
-        public static T ToData<T>(this IData data)
+        public static T ToData<T>(this IData data) where T : class, IData
         {
+            if (data == null)
+            {
+                return null;
+            }
+
             TypeInfo toTypeInfo = typeof(T).GetTypeInfo();
             TypeInfo fromType = data.GetType().GetTypeInfo();
             T toData = (T)Activator.CreateInstance(typeof(T));

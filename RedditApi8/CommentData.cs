@@ -59,7 +59,7 @@ namespace RedditApi8
         /// The replies.
         /// </value>
         [DataMember(Name = "replies")]
-        public List<Thing> Replies { get; set; }
+        public Thing Replies { get; set; }
 
         /// <summary>
         /// Gets or sets the id.
@@ -71,13 +71,13 @@ namespace RedditApi8
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="CommentData" /> is gilded.
+        /// Gets or sets the gilded.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if gilded; otherwise, <c>false</c>.
+        /// The gilded.
         /// </value>
         [DataMember(Name = "gilded")]
-        public bool Gilded { get; set; }
+        public long Gilded { get; set; }
 
         /// <summary>
         /// Gets or sets the author.
@@ -272,7 +272,7 @@ namespace RedditApi8
 
             set
             {
-                if (value.GetType() == typeof(bool))
+                if (value is bool)
                 {
                     this.Edited = null;
                 }
