@@ -161,7 +161,7 @@ namespace RedditApi8
                     return result;
                 }
             }
-            catch (Exception e)
+            catch
             {
                 return null;
             }
@@ -195,11 +195,6 @@ namespace RedditApi8
         [OnDeserialized]
         internal void OnDeserialized(StreamingContext context)
         {
-            if (this.Kind == null)
-            {
-                return;
-            }
-
             switch (this.Kind)
             {
                 case ThingKind.Listing:

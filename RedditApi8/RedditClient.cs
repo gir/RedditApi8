@@ -20,6 +20,11 @@ namespace RedditApi8
     public class RedditClient
     {
         /// <summary>
+        /// The time between requests in milliseconds.
+        /// </summary>
+        private const int TimeBetweenRequests = 2000;
+
+        /// <summary>
         /// The cookie reddit returns at login.
         /// </summary>
         private Cookie cookie;
@@ -40,6 +45,11 @@ namespace RedditApi8
         private List<string> errors;
 
         /// <summary>
+        /// The time of next request.
+        /// </summary>
+        private long timeOfNextRequest;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="RedditClient" /> class.
         /// </summary>
         /// <param name="userAgent">The user agent.</param>
@@ -50,6 +60,7 @@ namespace RedditApi8
             this.client.DefaultRequestHeaders.Add("User-Agent", this.UserAgent);
             this.errors = new List<string>();
             this.IsLoggedIn = false;
+            this.timeOfNextRequest = 0;
         }
 
         /// <summary>
@@ -108,6 +119,7 @@ namespace RedditApi8
                 });
 
             this.errors.Clear();
+            await this.AwaitForNextRequest();
             this.response = await this.client.PostAsync(loginUri, content);
             if (this.response.IsSuccessStatusCode)
             {
@@ -158,6 +170,7 @@ namespace RedditApi8
                         new KeyValuePair<string, string>("uh", this.Modhash)
                     });
 
+                await this.AwaitForNextRequest();
                 this.response = await this.client.PostAsync(logoutUri, content);
                 this.cookie = null;
                 this.client.DefaultRequestHeaders.Remove("Cookie");
@@ -232,25 +245,29 @@ namespace RedditApi8
         /// Gets the comments async.
         /// </summary>
         /// <param name="id">The link id to get comments from.</param>
-        /// <returns>Returns list of comments.</returns>
-        public async Task<Tuple<LinkData, List<CommentData>>> GetCommentsAsync(string id)
-        {
-            string uri = string.Format(ApiPaths.Comments, id);
-            List<Thing> result = await this.ApiGetAsync(uri.ToString());
-            return Tuple.Create(((ListingData)result[0].Data).Children[0].Data as LinkData, result[1].GetDataList<CommentData>());
-        }
-
-        /// <summary>
-        /// Gets more comments async.
-        /// </summary>
-        /// <param name="id">The link id to get comments from.</param>
         /// <param name="commentId">The comment id.</param>
         /// <returns>Returns list of comments.</returns>
-        public async Task<Tuple<LinkData, List<CommentData>>> GetMoreCommentsAsync(string id, string commentId)
+        public async Task<Tuple<LinkData, List<CommentData>>> GetCommentsAsync(string id, string commentId = null)
         {
-            string uri = string.Format(ApiPaths.MoreComments, id, commentId);
+            string uri;
+            if (string.IsNullOrEmpty(commentId))
+            {
+                uri = string.Format(ApiPaths.Comments, id);
+            }
+            else
+            {
+                uri = string.Format(ApiPaths.MoreComments, id, commentId);
+            }
+
             List<Thing> result = await this.ApiGetAsync(uri.ToString());
-            return Tuple.Create(((ListingData)result[0].Data).Children[0].Data as LinkData, result[1].GetDataList<CommentData>());
+            if (result != null)
+            {
+                return Tuple.Create<LinkData, List<CommentData>>(((ListingData)result[0].Data).Children[0].Data as LinkData, result[1].GetDataList<CommentData>());
+            }
+            else
+            {
+                return Tuple.Create<LinkData, List<CommentData>>(null, null);
+            }
         }
 
         /// <summary>
@@ -260,6 +277,7 @@ namespace RedditApi8
         /// <returns>Thing object if GET was successful; otherwise, null.</returns>
         private async Task<List<Thing>> ApiGetAsync(string uri)
         {
+            await this.AwaitForNextRequest();
             this.response = await this.client.GetAsync(uri);
             if (this.response.IsSuccessStatusCode)
             {
@@ -270,6 +288,22 @@ namespace RedditApi8
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Awaits for when you can make next request.
+        /// </summary>
+        /// <returns>Returns a task.</returns>
+        private async Task AwaitForNextRequest()
+        {
+            // Check to see if it's okay to make another request.
+            while (this.timeOfNextRequest > DateTime.Now.Ticks)
+            {
+                await Task.Delay(100);
+            }
+
+            // Set the time of next request.
+            this.timeOfNextRequest = DateTime.Now.AddMilliseconds(TimeBetweenRequests).Ticks;
         }
     }
 }
