@@ -1,6 +1,6 @@
 ﻿RedditApi8
 
-Windows Store Reddit API
+Windows Store C# Reddit API (Metro/WinRT)
 
 Usage:
 RedditClient client = new RedditClient();
